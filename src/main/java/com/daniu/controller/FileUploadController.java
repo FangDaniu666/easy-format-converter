@@ -34,7 +34,9 @@ public class FileUploadController {
         if (type.isBlank()) return "请输入转换后的格式";
 
         String fileOriginalFilename = file.getOriginalFilename();
-        if (fileOriginalFilename.endsWith(type)) return "文件已经为" + type + "格式";
+        if (fileOriginalFilename != null && fileOriginalFilename.endsWith(type)) {
+            return "文件已经为" + type + "格式";
+        }
 
         return fileUploadService.uploadFile(file, type, fileType, fileOriginalFilename);
     }

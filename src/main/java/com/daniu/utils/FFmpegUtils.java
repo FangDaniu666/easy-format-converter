@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -33,17 +32,20 @@ public class FFmpegUtils {
         String path = ASSETS_PATH + "/" + fileType + "/";
         File directory = new File(path);
         if (!directory.exists()) {
-            directory.mkdirs(); // 创建目录及其父目录
+            boolean mkdirs = directory.mkdirs();
+            if (!mkdirs) {
+                throw new IOException("Failed to create directory: " + directory);
+            }
         }
         String outputFilePath = path + fileName + "." + format;
         Files.deleteIfExists(Path.of(outputFilePath));
 
         ProcessWrapper ffmpeg = new DefaultFFMPEGLocator().createExecutor();
 
-        return getErrorStreamString(fileName, inputFilePath, outputFilePath, ffmpeg, fileType, callback);
+        return getErrorStreamString(inputFilePath, outputFilePath, ffmpeg, fileType, callback);
     }
 
-    private String getErrorStreamString(String fileName, String inputFilePath, String outputFilePath, ProcessWrapper ffmpeg, String fileType, RatioCallback callback) throws IOException, InterruptedException, ExecutionException {
+    private String getErrorStreamString(String inputFilePath, String outputFilePath, ProcessWrapper ffmpeg, String fileType, RatioCallback callback) throws IOException, InterruptedException, ExecutionException {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             setArgument(ffmpeg, inputFilePath, outputFilePath, fileType);
             try {
@@ -52,7 +54,7 @@ public class FFmpegUtils {
                 throw new RuntimeException(e);
             }
             try (BufferedReader br = new BufferedReader(new InputStreamReader(ffmpeg.getErrorStream()))) {
-                blockFfmpeg(br, callback, fileName, inputFilePath, outputFilePath);
+                blockFfmpeg(br, callback, inputFilePath, outputFilePath);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -64,7 +66,7 @@ public class FFmpegUtils {
         return outputFilePath;
     }
 
-    private void blockFfmpeg(BufferedReader br, RatioCallback callback, String fileName, String inputFilePath, String outputFilePath) throws IOException {
+    private void blockFfmpeg(BufferedReader br, RatioCallback callback, String inputFilePath, String outputFilePath) throws IOException {
         String line;
         double duration = 0;
 
@@ -92,7 +94,7 @@ public class FFmpegUtils {
         }
     }
 
-    private ProcessWrapper setArgument(ProcessWrapper ffmpeg, String inputFilePath, String outputFilePath, String fileType) {
+    private void setArgument(ProcessWrapper ffmpeg, String inputFilePath, String outputFilePath, String fileType) {
         ffmpeg.addArgument("-i");
         ffmpeg.addArgument(inputFilePath);
         if (fileType.equals("video")) {
@@ -111,10 +113,9 @@ public class FFmpegUtils {
             ffmpeg.close();
         }
         ffmpeg.addArgument(outputFilePath);
-        return ffmpeg;
     }
 
-    private ProcessWrapper setVideoCodec(ProcessWrapper ffmpeg) {
+    private void setVideoCodec(ProcessWrapper ffmpeg) {
         Optional<CodecInfo> nvencCodec = getCodecByName("h264_nvenc");
         if (nvencCodec.isPresent()) {
             ffmpeg.addArgument("h264_nvenc");
@@ -133,7 +134,6 @@ public class FFmpegUtils {
                 log.warn("Neither h264_nvenc nor h264_amf was found. Falling back to libx264.");
             }
         }
-        return ffmpeg;
     }
 
     public Optional<CodecInfo> getCodecByName(String codecName) {
