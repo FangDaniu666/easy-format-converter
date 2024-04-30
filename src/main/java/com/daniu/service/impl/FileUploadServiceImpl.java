@@ -82,7 +82,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     public SseEmitter getProgressEmitter(String emitterId) {
         SseEmitter emitter = emitters.get(emitterId);
         if (emitter == null) {
-            emitter = createErrorMessageEmitter("无效的进度查询", emitterId);
+            emitter = createErrorMessageEmitter(emitterId);
         }
         return emitter;
     }
@@ -98,9 +98,9 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
     }
 
-    private SseEmitter createErrorMessageEmitter(String message, String emitterId) {
+    private SseEmitter createErrorMessageEmitter(String emitterId) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        completeEmitter(emitter, message, emitterId);
+        completeEmitter(emitter, "无效的进度查询", emitterId);
         return emitter;
     }
 

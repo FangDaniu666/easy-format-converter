@@ -15,7 +15,10 @@ public class FileUploader {
         // 确保目标目录存在，如果不存在则创建
         File directory = new File(destinationDirectory);
         if (!directory.exists()) {
-            directory.mkdirs(); // 创建目录及其父目录
+            boolean mkdirs = directory.mkdirs();// 创建目录及其父目录
+            if (!mkdirs) {
+                throw new IOException("Failed to create directory: " + destinationDirectory);
+            }
         }
         // 构造本地文件路径
         String filePath = destinationDirectory + File.separator + fileName;
