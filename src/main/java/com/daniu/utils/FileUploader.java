@@ -19,13 +19,10 @@ public class FileUploader {
         }
         // 构造本地文件路径
         String filePath = destinationDirectory + File.separator + fileName;
-
         // 将 MultipartFile 内容写入本地文件
         File file = new File(filePath);
         multipartFile.transferTo(file);
-
-        log.info("The file is temporarily stored in: " + filePath);
-
+        log.info("The file is temporarily stored in: {}", filePath);
         return filePath;
     }
 
