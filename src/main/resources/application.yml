@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: format-converter
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+server:
+  port: 8089

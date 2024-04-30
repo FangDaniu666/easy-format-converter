@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>音视频格式转换</title>
+    <link rel="stylesheet" type="text/css" th:href="@{css/styles.css}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+<div>
+    <h2>音视频格式转换</h2>
+</div>
+
+<form id="uploadForm" enctype="multipart/form-data">
+    <!-- 单选框选项：视频或音频 -->
+    <input type="radio" id="videoType" name="fileType" value="video" checked required>
+    <label for="videoType">视频</label>
+
+    <input type="radio" id="audioType" name="fileType" value="audio" required>
+    <label for="audioType">音频</label>
+
+    <br/><br/>
+    <!--<input type="file" id="file" name="multiplefile" required/>-->
+    <input type="file" id="multipleFile" name="file" multiple required/>
+    <br/><br/>
+    <button id="startButton" type="button">转换为</button>
+    <br/><br/>
+    <input type="text" id="type" name="type" required/>
+
+    <div>
+        <!-- 进度条显示 -->
+        <div class="progress" th:if="${formattedRatio != null}">
+            <p>Progress: <span id="formattedRatio" th:text="${formattedRatio}"></span></p>
+            <div class="progressBar">
+                <div id="bar" th:style="'width: ' + ${formattedRatio} + '%; background-color: lightblue;'">
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+        <p id="progressMeesage"></p>
+    </div>
+    <div id="fileListBox">
+        <ul id="fileList"></ul>
+    </div>
+
+</form>
+</body>
+
+<script th:inline="javascript">
+
+    let globalFiles = [];
+
+    $(document).ready(function () {
+        // 监听文件输入框的change事件
+        $('#multipleFile').on('change', function (event) {
+            // 获取选择的文件列表
+            const files = event.target.files;
+
+            // 更新全局变量 globalFiles
+            for (let i = 0; i < files.length; i++) {
+                globalFiles = globalFiles.concat(files[i])
+            }
+
+            // 获取用于显示文件列表的<ul>元素
+            const fileList = $('#fileList');
+
+            // 遍历文件列表，创建<li>元素并添加到<ul>中
+            for (const file of files) {
+                const fileName = file.name;
+                const fileSize = formatFileSize(file.size);
+
+                // 创建<li>元素并设置文本内容
+                const listItem = $('<li></li>').text(`${fileName} (${fileSize})`);
+
+                // 添加删除按钮
+                const deleteButton = $('<button id="deleteButton">删除</button>');
+                deleteButton.on('click', function () {
+                    // 当删除按钮被点击时，移除对应的<li>元素
+                    listItem.remove();
+                    // 更新全局变量 globalFiles，移除对应的文件
+                    globalFiles = globalFiles.filter(f => f.name !== fileName);
+                });
+
+                // 将删除按钮添加到<li>元素中
+                listItem.append(deleteButton);
+
+                // 将<li>元素添加到文件列表中
+                fileList.append(listItem);
+            }
+
+        });
+
+        $('#startButton').click(submitFile);
+
+        let currentEventSource = null;
+
+        function closeEventSource() {
+            if (currentEventSource) {
+                currentEventSource.close();
+                currentEventSource = null;
+                console.log('EventSource closed');
+                $('#startButton').prop('disabled', false);
+            }
+        }
+
+        function submitFile() {
+            // 先关闭当前的 EventSource 连接
+            closeEventSource();
+
+            // 获取表单数据
+            let formData = new FormData($('#uploadForm')[0]);
+            // let file = $('#file')[0].files[0];
+            let file = globalFiles[0];
+            formData.set('file', file);
+            let type = $('#type').val();
+            let progressName = "";
+            // let isFinished = false;
+
+            $.ajax({
+                url: '/upload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                error: function (xhr, status, error) {
+                    console.log('Upload failed. Status: ' + status);
+                }
+            }).then(value => {
+                // isFinished = true;
+                // $('#progressMeesage').text(value);
+                if (value !== 'OK') {
+                    $('#progressMeesage').text(value);
+                    removeFileByName(globalFiles[0].name);
+                    if (globalFiles.length > 0) {
+                        submitFile(); // 继续递归调用 submitFile()
+                    }
+                }
+
+
+                if (value === 'OK' && file && type.trim() !== '') {
+                    let fileName = globalFiles[0].name;
+
+                    let eventSource = new EventSource('/progress/' + fileName);
+
+                    progressName = removeFileByName(fileName);
+
+                    eventSource.onopen = function () {
+                        console.log('EventSource connected');
+                        // 禁用开始按钮
+                        $('#startButton').prop('disabled', true);
+
+                        /*if (!isFinished) {
+                            $('#progressMeesage').text(`正在转换:${progressName}`);
+                        }*/
+                        $('#progressMeesage').text(`正在转换:${progressName}`);
+                    };
+
+                    eventSource.onmessage = function (event) {
+                        let formattedRatio = event.data;
+
+                        if (formattedRatio % 1 === 0) {
+                            $('#formattedRatio').text(formattedRatio + '%');
+                        } else {
+                            $('#formattedRatio').text(formattedRatio);
+                        }
+                        $('#bar').css('width', formattedRatio + '%');
+
+                        if (formattedRatio === '100') {
+                            console.log('EventSource closed');
+                            $('#startButton').prop('disabled', false);
+
+                            if (globalFiles.length > 0) {
+                                submitFile(); // 继续递归调用 submitFile()
+                            }
+                        }
+                    };
+
+                    eventSource.onerror = function () {
+                        console.log('EventSource error');
+                        eventSource.close();
+                        $('#progressMessage').text('转换失败');
+                        $('#startButton').prop('disabled', false);
+                        if (globalFiles.length > 0) {
+                            submitFile(); // 继续递归调用 submitFile()
+                        }
+                    };
+
+                    // 将当前的 EventSource 对象赋值给全局变量
+                    currentEventSource = eventSource;
+
+                }
+            });
+
+        }
+
+    });
+
+    function removeFileByName(fileName) {
+        const fileList = $('#fileList');
+        let listItemToRemove = fileList.find(`li:contains(${fileName})`);
+        let removedName = fileName;
+
+        if (listItemToRemove.length > 0) {
+            listItemToRemove.remove();
+            globalFiles = globalFiles.filter(f => f.name !== fileName);
+        }
+        return removedName;
+    }
+
+    // 格式化文件大小
+    function formatFileSize(size) {
+        if (size === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(size) / Math.log(k));
+        return parseFloat((size / Math.pow(k, i))).toFixed(2) + ' ' + sizes[i];
+    }
+
+</script>
+
+<style>
+
+    input[type="file"] {
+        width: 100%;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 16px;
+
+    }
+
+    input[type="text"] {
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 16px;
+
+    }
+
+    input[type="file"]::file-selector-button {
+        font-weight: 500;
+        color: #fff;
+        padding: 10px;
+        background-color: #409eff;
+        border-color: #409eff;
+        height: 100%;
+        border-radius: 3px;
+    }
+
+    #startButton {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    #startButton:disabled {
+        background-color: #ccc;
+        color: #888;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    #startButton:hover {
+        background-color: #0056b3;
+    }
+
+    .progress {
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 0px;
+    }
+
+    .progressBar {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+    }
+
+    /* 进度条填充部分的样式 */
+    .progressBar > span {
+        height: 100%;
+    }
+
+    input[type=radio] {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ccc;
+        outline: none;
+        transition: all 0.2s ease-in-out;
+    }
+
+    input[type=radio]:checked {
+        background-color: #007bff;
+        border: 2px solid #ccc;
+    }
+
+    #progressMeesage {
+        height: 3em;
+        overflow: hidden;
+        line-height: 1.5em;
+    }
+
+    #fileListBox {
+        height: 13.5em;
+        line-height: 1.5em;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+
+    #fileList {
+        padding: 0; /* 去除列表默认的内边距 */
+        list-style: none; /* 去除列表项的默认标记 */
+        margin: 0; /* 去除列表的外边距 */
+    }
+
+    #fileList li {
+        /* 可选：为列表项添加样式，比如间距、边框等 */
+        padding: 5px;
+        border-bottom: 1px solid #eee; /* 列表项之间添加分隔线 */
+    }
+
+    #deleteButton {
+        background-color: #dc3545; /* 按钮的背景颜色，这里使用了红色 */
+        color: white; /* 按钮文本的颜色，白色 */
+        border: none; /* 去除按钮的边框 */
+        border-radius: 5px; /* 设置按钮的边框圆角 */
+        cursor: pointer; /* 鼠标移上按钮时显示手型指针 */
+        font-size: 1em; /* 按钮文本的字体大小 */
+        margin-left: 5px;
+    }
+
+    #deleteButton:hover {
+        background-color: #c82333; /* 鼠标移上按钮时的背景颜色变化 */
+    }
+
+
+</style>
+</html>
