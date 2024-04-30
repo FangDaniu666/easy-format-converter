@@ -21,7 +21,6 @@
     <label for="audioType">音频</label>
 
     <br/><br/>
-    <!--<input type="file" id="file" name="multiplefile" required/>-->
     <input type="file" id="multipleFile" name="file" multiple required/>
     <br/><br/>
     <button id="startButton" type="button">转换为</button>
@@ -110,12 +109,10 @@
 
             // 获取表单数据
             let formData = new FormData($('#uploadForm')[0]);
-            // let file = $('#file')[0].files[0];
             let file = globalFiles[0];
             formData.set('file', file);
             let type = $('#type').val();
             let progressName = "";
-            // let isFinished = false;
 
             $.ajax({
                 url: '/upload',
@@ -127,8 +124,6 @@
                     console.log('Upload failed. Status: ' + status);
                 }
             }).then(value => {
-                // isFinished = true;
-                // $('#progressMeesage').text(value);
                 if (value !== 'OK') {
                     $('#progressMeesage').text(value);
                     removeFileByName(globalFiles[0].name);
@@ -136,7 +131,6 @@
                         submitFile(); // 继续递归调用 submitFile()
                     }
                 }
-
 
                 if (value === 'OK' && file && type.trim() !== '') {
                     let fileName = globalFiles[0].name;
@@ -149,10 +143,6 @@
                         console.log('EventSource connected');
                         // 禁用开始按钮
                         $('#startButton').prop('disabled', true);
-
-                        /*if (!isFinished) {
-                            $('#progressMeesage').text(`正在转换:${progressName}`);
-                        }*/
                         $('#progressMeesage').text(`正在转换:${progressName}`);
                     };
 
