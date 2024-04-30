@@ -1,11 +1,11 @@
 package com.daniu.entity;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UploadForm {
     private MultipartFile file;
 

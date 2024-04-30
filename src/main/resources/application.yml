@@ -5,5 +5,7 @@ spring:
     multipart:
       max-file-size: 1024MB
       max-request-size: 1024MB
+springdoc:
+  paths-to-match: /api/**
 server:
   port: 8089
