@@ -22,13 +22,14 @@ public class ServerStartedListener implements ApplicationListener<WebServerIniti
         } catch (UnknownHostException e) {
             host = "localhost";
         }
-        String url = String.format("http://%s:%d", host, port) + "/upload";
+         String url = String.format("http://%s:%d", host, port) + "/upload";
+        String localUrl = String.format("http://%s:%d", "localhost", port) + "/upload";
 
-        log.info("Service started. Access URL:{}", url);
+        log.info("Service started. Access URL: {}; {}", localUrl, url);
 
         // 自动跳转到服务地址
         try {
-            redirectToUrl(url);
+            redirectToUrl(localUrl);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -2,7 +2,7 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>console</headerType>
-  <jar>format-converter.jar</jar>
+  <jar>east-format-converter.jar</jar>
   <outfile>easy format converter.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
@@ -13,7 +13,7 @@
   <stayAlive>false</stayAlive>
   <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
-  <icon></icon>
+  <icon>icon.ico</icon>
   <singleInstance>
     <mutexName>easy format converter</mutexName>
     <windowTitle>Easy Format Converter</windowTitle>
