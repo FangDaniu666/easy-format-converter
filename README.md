@@ -20,7 +20,7 @@
    - 在开始使用之前，请确保已安装Java 17或更新的版本。
 
 2. **下载最新版本**
-   - 前往 [GitHub releases 页面](https://github.com//releases) 下载最新的发布版本。
+   - 前往 [GitHub releases 页面](https://github.com/FangDaniu666/easy-format-converter/releases) 下载最新的发布版本。
 
 3. **启动应用**
    - 运行下载的可执行文件（exe文件），启动 Easy Format Converter。
