@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 import static com.daniu.constant.Constant.TEMP_PATH;
 
@@ -30,7 +31,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     private boolean isSuccess;
 
     @Override
-    public String uploadFile(MultipartFile file, String type, String fileType, String fileOriginalFilename) throws IOException {
+    public String uploadFile(MultipartFile file, String type, String fileType, String fileOriginalFilename, boolean isBlocked) throws IOException, ExecutionException, InterruptedException {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.put(fileOriginalFilename, emitter);
         isSuccess = false;
@@ -38,7 +39,7 @@ public class FileUploadServiceImpl implements FileUploadService {
         String savedFilePath = FileUploader.saveMultipartFileToLocalFile(file, TEMP_PATH, fileOriginalFilename);
         String removedFileExtension = FileNameUtils.removeFileExtension(fileOriginalFilename);
 
-        CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             try {
                 return ffmpegUtils.formatConversion(removedFileExtension, savedFilePath, type, fileType,
                         progress -> {
@@ -68,13 +69,15 @@ public class FileUploadServiceImpl implements FileUploadService {
                 log.error("转换过程中出现错误", e);
                 return null;
             }
-        }).thenAccept(output -> {
+        });
+        future.thenAccept(output -> {
             if (output != null && isSuccess) {
                 completeEmitter(emitter, "文件保存为：" + output, fileOriginalFilename);
             } else {
                 completeEmitter(emitter, "转换失败", fileOriginalFilename);
             }
         });
+        if (isBlocked) return future.get();
         return "OK";
     }
 

@@ -12,11 +12,11 @@ import java.util.concurrent.ExecutionException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IOException.class)
+    @ExceptionHandler({IOException.class, ExecutionException.class, InterruptedException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
-    public String handleIOException(IOException ex) {
-        return "转换失败,"+"操作中发生异常: " + ex.getMessage();
+    public String handleIOException() {
+        return "转换失败," + "操作中发生异常";
     }
 
 }
