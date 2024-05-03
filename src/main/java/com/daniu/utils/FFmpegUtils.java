@@ -71,7 +71,7 @@ public class FFmpegUtils {
         double duration = 0;
 
         while ((line = br.readLine()) != null) {
-            // System.out.println(fileName + "你好："+line);
+            // System.out.println(fileName + line);
             if (line.equals("Conversion failed!")) {
                 callback.onRatioUpdated(-1);
                 Files.deleteIfExists(Path.of(inputFilePath));
@@ -105,6 +105,7 @@ public class FFmpegUtils {
             ffmpeg.addArgument("-strict");
             ffmpeg.addArgument("experimental");
         } else if (fileType.equals("audio")) {
+            // todo
             /*ffmpeg.addArgument("-c:a");
             ffmpeg.addArgument("libmp3lame");*/
             /*ffmpeg.addArgument("-q:a");
