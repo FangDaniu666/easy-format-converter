@@ -30,9 +30,10 @@ public class FileUploadController {
 
     @PostMapping("/upload")
     @ResponseBody
-    public String singleFileUpload(@RequestParam("file") MultipartFile file,
-                                   @RequestParam("type") String type, @RequestParam("fileType") String fileType)
+    public String filesUpload(@ModelAttribute UploadForm uploadForm)
             throws IOException, ExecutionException, InterruptedException {
+        MultipartFile file = uploadForm.getFile();
+        String type = uploadForm.getType();
         if (file.isEmpty()) return "请选择一个文件上传";
         if (type.isBlank()) return "请输入转换后的格式";
 
@@ -41,7 +42,7 @@ public class FileUploadController {
             return "文件已经为" + type + "格式";
         }
 
-        return fileUploadService.uploadFile(file, type, fileType, fileOriginalFilename, false);
+        return fileUploadService.uploadFile(uploadForm, fileOriginalFilename, false);
     }
 
     @GetMapping(value = "/progress/{emitterId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

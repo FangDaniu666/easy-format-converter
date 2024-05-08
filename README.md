@@ -3,9 +3,7 @@
 ### Overview
 一个简洁的音频/视频格式转换工具，支持同时处理多种不同的音视频格式，并提供简单易用的界面和可调用的API。
 
-<div style="text-align:center;">
-  <img src="imgs/img.png" alt="图片" style="width:50%;">
-</div>
+<img src="imgs/img.png" alt="图片" style="width:50%;">
 
 ### Features
 

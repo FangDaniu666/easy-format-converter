@@ -1,5 +1,6 @@
 package com.daniu.controller.api;
 
+import com.daniu.entity.UploadForm;
 import com.daniu.service.FileUploadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,11 +28,12 @@ public class FileUploadAPIController {
 
     @PostMapping(path = "/upload", consumes = "multipart/form-data")
     @Operation(summary = "文件上传", description = " file为输入文件,type为输入格式,fileType文件为音频(audio)或视频(video)")
-    public void singleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam("type") String type,
-                                 @RequestParam("fileType") String fileType, HttpServletResponse response)
+    public void filesUpload(@ModelAttribute UploadForm uploadForm, HttpServletResponse response)
             throws IOException, ExecutionException, InterruptedException {
-
+        MultipartFile file = uploadForm.getFile();
+        String type = uploadForm.getType();
         String fileOriginalFilename = file.getOriginalFilename();
+
         if (file.isEmpty() || type.isBlank() ||
                 (fileOriginalFilename != null && fileOriginalFilename.endsWith(type))) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -39,7 +41,7 @@ public class FileUploadAPIController {
             return;
         }
 
-        String filePath = fileUploadService.uploadFile(file, type, fileType, fileOriginalFilename, true);
+        String filePath = fileUploadService.uploadFile(uploadForm, fileOriginalFilename, true);
 
         byte[] fileBytes = Files.readAllBytes(Paths.get(filePath));
         response.setContentType("application/octet-stream");
