@@ -5,9 +5,7 @@
     <title>音视频格式转换</title>
     <link rel="stylesheet" type="text/css" th:href="@{css/styles.css}"/>
     <link rel="icon" th:href="@{icon/favicon.ico}" type="image/x-icon">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!--<script th:src="@{layui/layui.js}"></script>
-    <link rel="stylesheet" type="text/css" th:href="@{layui/css/layui.css}"/>-->
+    <script th:src="@{jquery/jquery-3.7.1.min.js}"></script>
 </head>
 
 <body>
@@ -15,43 +13,47 @@
     <h2>音视频格式转换</h2>
 </div>
 
-<form id="uploadForm" enctype="multipart/form-data">
-    <div>
-        <!-- 单选框选项：视频或音频 -->
-        <input type="radio" id="videoType" name="fileType" value="video" checked required>
-        <label for="videoType">视频</label>
+<div class="card">
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div>
+            <!-- 单选框选项：视频或音频 -->
+            <input type="radio" id="videoType" name="fileType" value="video" checked required>
+            <label for="videoType">视频</label>
 
-        <input type="radio" id="audioType" name="fileType" value="audio" required>
-        <label for="audioType">音频</label>
+            <input type="radio" id="audioType" name="fileType" value="audio" required>
+            <label for="audioType">音频</label>
 
-        <button id="apiButton" onclick="redirectToSwagger()">API</button>
+            <button type="button" class="layui-btn layui-bg-blue" id="apiButton" onclick="redirectToSwagger()">API
+            </button>
 
-    </div>
+        </div>
 
-    <br/><br/>
-    <input type="file" id="multipleFile" name="file" multiple required/>
-    <br/><br/>
-    <button id="startButton" type="button">转换为</button>
-    <br/><br/>
-    <input type="text" id="type" name="type" required/>
+        <br/><br/>
+        <input type="file" id="multipleFile" name="file" multiple required/>
+        <br/><br/>
+        <button id="startButton" type="button">转换为</button>
+        <br/><br/>
+        <input type="text" id="type" name="type" required/>
 
-    <div>
-        <!-- 进度条显示 -->
-        <div class="progress" th:if="${formattedRatio != null}">
-            <p>Progress: <span id="formattedRatio" th:text="${formattedRatio}"></span></p>
-            <div class="progressBar">
-                <div id="bar" th:style="'width: ' + ${formattedRatio} + '%; background-color: lightblue;'">
-                    &nbsp;
+        <div>
+            <!-- 进度条显示 -->
+            <div class="progress" th:if="${formattedRatio != null}">
+                <p>Progress: <span id="formattedRatio" th:text="${formattedRatio}"></span></p>
+                <div class="progressBar">
+                    <div id="bar" th:style="'width: ' + ${formattedRatio} + '%; background-color: lightblue;'">
+                        &nbsp;
+                    </div>
                 </div>
             </div>
+            <p id="progressMeesage"></p>
         </div>
-        <p id="progressMeesage"></p>
-    </div>
-    <div id="fileListBox">
-        <ul id="fileList"></ul>
-    </div>
+        <div id="fileListBox">
+            <ul id="fileList"></ul>
+        </div>
 
-</form>
+    </form>
+</div>
+
 
 </body>
 
@@ -226,6 +228,20 @@
 
 <style>
 
+
+    .card {
+        width: 600px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        text-align: center;
+    }
+
     input[type="file"] {
         width: 100%;
         margin-bottom: 15px;
@@ -257,26 +273,30 @@
         border-radius: 3px;
     }
 
-    #startButton,#apiButton {
+    #startButton, #apiButton {
         width: 100%;
         padding: 10px;
-        background-color: #007bff;
+        background-color: #1e9fff;
         color: #fff;
-        border: none;
-        border-radius: 3px;
         font-size: 16px;
         cursor: pointer;
+        vertical-align: middle;
+        border-width: 0;
+        border-color: #8d8d8d;
+        border-radius: 2px;
     }
 
-    #startButton:disabled,#apiButton:disabled {
+    #startButton:disabled, #apiButton:disabled {
         background-color: #ccc;
         color: #888;
         cursor: not-allowed;
         opacity: 0.6;
     }
 
-    #startButton:hover,#apiButton:hover {
-        background-color: #0056b3;
+    #startButton:hover, #apiButton:hover {
+        opacity: .8;
+        filter: alpha(opacity=80);
+        color: #fff;
     }
 
     #apiButton {
