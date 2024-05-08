@@ -6,8 +6,8 @@
     <link rel="stylesheet" type="text/css" th:href="@{css/styles.css}"/>
     <link rel="icon" th:href="@{icon/favicon.ico}" type="image/x-icon">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script th:src="@{layui/layui.js}"></script>
-    <link rel="stylesheet" type="text/css" th:href="@{layui/css/layui.css}"/>
+    <!--<script th:src="@{layui/layui.js}"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{layui/css/layui.css}"/>-->
 </head>
 
 <body>
@@ -24,7 +24,8 @@
         <input type="radio" id="audioType" name="fileType" value="audio" required>
         <label for="audioType">音频</label>
 
-        <button type="button" class="layui-btn layui-bg-blue" id="apiButton" onclick="redirectToSwagger()">API</button>
+        <!--<button type="button" class="layui-btn layui-bg-blue" id="apiButton" onclick="redirectToSwagger()">API</button>-->
+        <button id="apiButton" onclick="redirectToSwagger()">API</button>
 
     </div>
 
