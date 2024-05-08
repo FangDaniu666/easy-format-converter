@@ -1,5 +1,6 @@
 package com.daniu.service.impl;
 
+import com.daniu.entity.UploadForm;
 import com.daniu.service.FileUploadService;
 import com.daniu.utils.ConsoleProgressBar;
 import com.daniu.utils.FFmpegUtils;
@@ -8,9 +9,7 @@ import com.daniu.utils.FileUploader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -31,20 +30,20 @@ public class FileUploadServiceImpl implements FileUploadService {
     private boolean isSuccess;
 
     @Override
-    public String uploadFile(MultipartFile file, String type, String fileType, String fileOriginalFilename, boolean isBlocked) throws IOException, ExecutionException, InterruptedException {
+    public String uploadFile(UploadForm uploadForm, String fileOriginalFilename, boolean isBlocked) throws IOException, ExecutionException, InterruptedException {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.put(fileOriginalFilename, emitter);
         isSuccess = false;
 
-        String savedFilePath = FileUploader.saveMultipartFileToLocalFile(file, TEMP_PATH, fileOriginalFilename);
+        String savedFilePath = FileUploader.saveMultipartFileToLocalFile(uploadForm.getFile(), TEMP_PATH, fileOriginalFilename);
         String removedFileExtension = FileNameUtils.removeFileExtension(fileOriginalFilename);
 
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             try {
-                return ffmpegUtils.formatConversion(removedFileExtension, savedFilePath, type, fileType,
+                return ffmpegUtils.formatConversion(removedFileExtension, savedFilePath, uploadForm.getType(), uploadForm.getFileType(),
                         progress -> {
                             try {
-                                // System.out.println("你好" + progress);
+                                // System.out.println(progress);
                                 if (!(emitters.size() > 1)) {
                                     ConsoleProgressBar.updateProgressBar(progress, 100);
                                 }
