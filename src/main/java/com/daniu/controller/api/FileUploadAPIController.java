@@ -28,10 +28,9 @@ public class FileUploadAPIController {
 
     @PostMapping(path = "/upload", consumes = "multipart/form-data")
     @Operation(summary = "文件上传", description = " file为输入文件,type为输入格式,fileType文件为音频(audio)或视频(video)")
-    public void filesUpload(@ModelAttribute UploadForm uploadForm, HttpServletResponse response)
+    public void filesUpload(@RequestParam("file") MultipartFile file, @RequestParam("type") String type,
+                            @RequestParam("fileType") String fileType, HttpServletResponse response)
             throws IOException, ExecutionException, InterruptedException {
-        MultipartFile file = uploadForm.getFile();
-        String type = uploadForm.getType();
         String fileOriginalFilename = file.getOriginalFilename();
 
         if (file.isEmpty() || type.isBlank() ||
@@ -40,7 +39,7 @@ public class FileUploadAPIController {
             response.getWriter().write("文件上传失败或不符合要求");
             return;
         }
-
+        UploadForm uploadForm = new UploadForm(file, fileType, type);
         String filePath = fileUploadService.uploadFile(uploadForm, fileOriginalFilename, true);
 
         byte[] fileBytes = Files.readAllBytes(Paths.get(filePath));
